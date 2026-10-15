@@ -670,4 +670,82 @@ mod tests {
         let deserialized: RoundtripTest = from_str(&ini_str).unwrap();
         assert_eq!(test, deserialized)
     }
+
+    #[test]
+    fn test_serialize_vec() {
+        #[derive(Debug, Serialize)]
+        struct Config {
+            name: String,
+            tags: Vec<String>,
+        }
+
+        let config = Config {
+            name: "My App".to_string(),
+            tags: vec!["value1".to_string(), "value2".to_string()],
+        };
+
+        let ini_str = to_string(&config).unwrap();
+        println!("{}", ini_str);
+
+        assert!(ini_str.contains("name = My App"));
+        assert!(ini_str.contains("tags = value1"));
+        assert!(ini_str.contains("tags = value2"));
+
+        // Both occurrences of the key should be present, once per element.
+        let tag_lines: Vec<&str> = ini_str
+            .lines()
+            .filter(|l| l.starts_with("tags ="))
+            .collect();
+        assert_eq!(tag_lines, vec!["tags = value1", "tags = value2"]);
+    }
+
+    #[test]
+    fn test_serialize_empty_vec() {
+        #[derive(Debug, Serialize)]
+        struct Config {
+            name: String,
+            tags: Vec<String>,
+        }
+
+        let config = Config {
+            name: "My App".to_string(),
+            tags: vec![],
+        };
+
+        let ini_str = to_string(&config).unwrap();
+        assert!(ini_str.contains("name = My App"));
+        assert!(!ini_str.contains("tags"));
+    }
+
+    #[test]
+    fn test_serialize_vec_in_nested_struct() {
+        #[derive(Debug, Serialize)]
+        struct Config {
+            name: String,
+            database: Database,
+        }
+
+        #[derive(Debug, Serialize)]
+        struct Database {
+            hosts: Vec<String>,
+        }
+
+        let config = Config {
+            name: "My App".to_string(),
+            database: Database {
+                hosts: vec!["db1".to_string(), "db2".to_string(), "db3".to_string()],
+            },
+        };
+
+        let ini_str = to_string(&config).unwrap();
+        println!("{}", ini_str);
+
+        let lines: Vec<&str> = ini_str.lines().collect();
+        let section_idx = lines.iter().position(|&l| l == "[database]").unwrap();
+        let host_lines: Vec<&&str> = lines[section_idx..]
+            .iter()
+            .filter(|l| l.starts_with("hosts ="))
+            .collect();
+        assert_eq!(host_lines.len(), 3);
+    }
 }

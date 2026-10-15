@@ -1,6 +1,6 @@
 [package]
 name = "serini"
-version = "0.3.0"
+version = "0.3.0+frk.2"
 edition = "2024"
 authors = ["peanutbother <peanutbother@proton.me>"]
 description = "A serde-based INI file parser for Rust"
@@ -11,6 +11,8 @@ documentation = "https://docs.rs/serini"
 readme = "Readme.md"
 keywords = ["ini", "parser", "serde", "config", "serialization"]
 categories = ["config", "parser-implementations", "encoding"]
+
+publish = ["elleci"]
 
 [dependencies]
 serde_core = "^1.0"

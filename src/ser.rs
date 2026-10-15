@@ -287,11 +287,15 @@ impl ser::SerializeStructVariant for &mut SectionCollector {
 // Helper struct to detect if a value serializes as a struct
 struct StructDetector {
     is_struct: bool,
+    is_seq: bool,
 }
 
 impl StructDetector {
     fn new() -> Self {
-        StructDetector { is_struct: false }
+        StructDetector {
+            is_struct: false,
+            is_seq: false,
+        }
     }
 }
 
@@ -396,6 +400,7 @@ impl ser::Serializer for &mut StructDetector {
         Ok(())
     }
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
+        self.is_seq = true;
         Ok(self)
     }
     fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple> {
@@ -530,6 +535,273 @@ impl ser::SerializeStructVariant for &mut StructDetector {
     {
         Ok(())
     }
+    fn end(self) -> Result<()> {
+        Ok(())
+    }
+}
+
+// Helper to collect each element of a sequence as its own rendered string,
+// so a `Vec<T>` field can be written out as repeated `key = value` lines.
+struct SeqCollector {
+    items: Vec<String>,
+    section_names: Vec<String>,
+}
+
+impl ser::Serializer for &mut SeqCollector {
+    type Ok = ();
+    type Error = Error;
+    type SerializeSeq = Self;
+    type SerializeTuple = Self;
+    type SerializeTupleStruct = Self;
+    type SerializeTupleVariant = Self;
+    type SerializeMap = Self;
+    type SerializeStruct = Self;
+    type SerializeStructVariant = Self;
+
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
+        Ok(self)
+    }
+
+    fn serialize_bool(self, _v: bool) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_i8(self, _v: i8) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_i16(self, _v: i16) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_i32(self, _v: i32) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_i64(self, _v: i64) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_u8(self, _v: u8) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_u16(self, _v: u16) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_u32(self, _v: u32) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_u64(self, _v: u64) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_f32(self, _v: f32) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_f64(self, _v: f64) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_char(self, _v: char) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_str(self, _v: &str) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_bytes(self, _v: &[u8]) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_none(self) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_some<T>(self, value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        value.serialize(self)
+    }
+    fn serialize_unit(self) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_unit_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+    ) -> Result<()> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        value.serialize(self)
+    }
+    fn serialize_newtype_variant<T>(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _value: &T,
+    ) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple> {
+        Ok(self)
+    }
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleStruct> {
+        Ok(self)
+    }
+    fn serialize_tuple_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleVariant> {
+        Ok(self)
+    }
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+    fn serialize_struct_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStructVariant> {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+}
+
+impl ser::SerializeSeq for &mut SeqCollector {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_element<T>(&mut self, value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        let mut element_serializer = Serializer {
+            output: String::new(),
+            current_section: None,
+            section_names: self.section_names.clone(),
+        };
+        value.serialize(&mut element_serializer)?;
+        self.items.push(element_serializer.output);
+        Ok(())
+    }
+
+    fn end(self) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl ser::SerializeTuple for &mut SeqCollector {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_element<T>(&mut self, value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        ser::SerializeSeq::serialize_element(self, value)
+    }
+
+    fn end(self) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl ser::SerializeTupleStruct for &mut SeqCollector {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_field<T>(&mut self, value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        ser::SerializeSeq::serialize_element(self, value)
+    }
+
+    fn end(self) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl ser::SerializeTupleVariant for &mut SeqCollector {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_field<T>(&mut self, value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        ser::SerializeSeq::serialize_element(self, value)
+    }
+
+    fn end(self) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl ser::SerializeMap for &mut SeqCollector {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_key<T>(&mut self, _key: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+
+    fn serialize_value<T>(&mut self, _value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+
+    fn end(self) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl ser::SerializeStruct for &mut SeqCollector {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_field<T>(&mut self, _key: &'static str, _value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+
+    fn end(self) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl ser::SerializeStructVariant for &mut SeqCollector {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_field<T>(&mut self, _key: &'static str, _value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        Err(Error::UnsupportedFeature("expected a sequence".to_string()))
+    }
+
     fn end(self) -> Result<()> {
         Ok(())
     }
@@ -849,6 +1121,18 @@ impl ser::SerializeStruct for &mut Serializer {
 
             // Add the fields (the nested serializer won't have section headers)
             self.output.push_str(&nested_serializer.output);
+        } else if detector.is_seq {
+            // This is a sequence (e.g. Vec<T>) - write one `key = value` line
+            // per element instead of a single combined value.
+            let mut collector = SeqCollector {
+                items: Vec::new(),
+                section_names: self.section_names.clone(),
+            };
+            value.serialize(&mut collector)?;
+
+            for item in &collector.items {
+                self.write_key_value(key, item);
+            }
         } else {
             // Regular value or Option
             let mut temp_serializer = Serializer {

@@ -8,6 +8,7 @@ A serde-based INI file parser for Rust that supports automatic serialization and
 - 🔧 **Type-safe deserialization** - Parse INI files into strongly-typed Rust structs
 - 📁 **Section support** - Nested structs become INI sections automatically
 - 💭 **Option handling** - `None` values are serialized as commented lines if serialization is not skipped using `#[serde(skip)]` or similiar
+- 📋 **Repeated keys for Vec** - `Vec<T>` fields are serialized as repeated `key = value` lines, one per element
 - 🛡️ **Escape sequences** - Properly handles special characters in values
 - 🏷️ **Serde integration** - Supports serde attributes like `#[serde(rename = "...")]`
 
@@ -361,15 +362,39 @@ match result {
 }
 ```
 
+### Repeated Keys from Vec Fields
+
+`Vec<T>` fields are serialized as repeated `key = value` lines, one per element:
+
+```rust
+#[derive(Serialize, Deserialize)]
+struct Config {
+    tags: Vec<String>,
+}
+
+let config = Config {
+    tags: vec!["value1".to_string(), "value2".to_string()],
+};
+```
+
+Produces:
+
+```ini
+tags = value1
+tags = value2
+```
+
+An empty `Vec` produces no lines for that key. Note that deserializing repeated keys back into a `Vec` is **not** currently supported.
+
 ## Limitations
 
 The following types are **not** supported:
 
-- Sequences (Vec, arrays)
-- Tuples and tuple structs  
+- Tuples and tuple structs
 - Enums with variants
 - Maps (HashMap, BTreeMap)
 - Nested arrays or complex data structures
+- Deserializing sequences (Vec, arrays) back from INI
 
 ## Why serini?
 
